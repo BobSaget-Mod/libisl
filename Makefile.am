@@ -14,21 +14,35 @@ noinst_PROGRAMS = isl_test isl_polyhedron_sample isl_pip \
 	isl_closure isl_bound isl_codegen
 TESTS = isl_test codegen_test.sh pip_test.sh bound_test.sh
 
+if HAVE_PIPLIB
+ISL_PIPLIB = \
+	isl_lp_piplib.c \
+	isl_map_piplib.c \
+	isl_sample_piplib.c \
+	isl_sample_piplib.h \
+	isl_piplib.c
+else
+ISL_PIPLIB = \
+	isl_lp_no_piplib.c \
+	isl_map_no_piplib.c \
+	isl_sample_no_piplib.c
+endif
+
 if NEED_GET_MEMORY_FUNCTIONS
 GET_MEMORY_FUNCTIONS=mp_get_memory_functions.c
 endif
 
-AM_CPPFLAGS = -I. -I$(srcdir) -I$(srcdir)/include -Iinclude/ @GMP_CPPFLAGS@
+INCLUDES = -I. -I$(srcdir) -I$(srcdir)/include -Iinclude/ 
 AM_CFLAGS = @WARNING_FLAGS@
 
 libisl_la_SOURCES = \
+	$(ISL_PIPLIB) \
 	$(GET_MEMORY_FUNCTIONS) \
 	isl_aff.c \
 	isl_aff_private.h \
 	isl_affine_hull.c \
 	isl_arg.c \
 	isl_ast.c \
-	isl_ast_int.c \
 	isl_ast_private.h \
 	isl_ast_build.c \
 	isl_ast_build_private.h \
@@ -44,7 +58,6 @@ libisl_la_SOURCES = \
 	isl_bernstein.c \
 	isl_bernstein.h \
 	isl_blk.c \
-	isl_blk.h \
 	isl_bound.c \
 	isl_bound.h \
 	isl_coalesce.c \
@@ -66,21 +79,21 @@ libisl_la_SOURCES = \
 	isl_fold.c \
 	isl_gmp.c \
 	isl_hash.c \
-	isl_id_to_ast_expr.c \
-	isl_id_to_pw_aff.c \
+	isl_hmap_map_basic_set.c \
+	isl_hmap_map_basic_set.h \
 	isl_ilp.c \
-	isl_ilp_private.h \
 	isl_input.c \
-	isl_int.h \
+	isl_list.c \
+	isl_list_private.h \
 	isl_local_space_private.h \
 	isl_local_space.c \
 	isl_lp.c \
-	isl_lp_private.h \
+	isl_lp_piplib.h \
 	isl_map.c \
 	isl_map_simplify.c \
 	isl_map_subtract.c \
 	isl_map_private.h \
-	isl_map_to_basic_set.c \
+	isl_map_piplib.h \
 	isl_mat.c \
 	isl_mat_private.h \
 	isl_morph.c \
@@ -91,6 +104,7 @@ libisl_la_SOURCES = \
 	isl_options.c \
 	isl_options_private.h \
 	isl_output.c \
+	isl_piplib.h \
 	isl_point_private.h \
 	isl_point.c \
 	isl_polynomial_private.h \
@@ -108,7 +122,6 @@ libisl_la_SOURCES = \
 	isl_scan.h \
 	isl_schedule.c \
 	isl_schedule_private.h \
-	isl_set_list.c \
 	isl_sort.c \
 	isl_sort.h \
 	isl_space.c \
@@ -116,7 +129,6 @@ libisl_la_SOURCES = \
 	isl_stream.c \
 	isl_stream_private.h \
 	isl_seq.c \
-	isl_seq.h \
 	isl_tab.c \
 	isl_tab.h \
 	isl_tab_pip.c \
@@ -125,57 +137,73 @@ libisl_la_SOURCES = \
 	isl_transitive_closure.c \
 	isl_union_map.c \
 	isl_union_map_private.h \
-	isl_val.c \
-	isl_val_gmp.c \
-	isl_val_private.h \
-	isl_vec_private.h \
 	isl_vec.c \
 	isl_version.c \
 	isl_vertices_private.h \
 	isl_vertices.c
-libisl_la_LIBADD = @GMP_LIBS@
+EXTRA_libisl_la_SOURCES = \
+	isl_lp_piplib.c \
+	isl_lp_no_piplib.c \
+	isl_map_piplib.c \
+	isl_map_no_piplib.c \
+	isl_sample_no_piplib.c \
+	isl_sample_piplib.c \
+	isl_sample_piplib.h \
+	isl_piplib.c
+libisl_la_LIBADD = @PIPLIB_LIBS@ @GMP_LIBS@
 libisl_la_LDFLAGS = -version-info @versioninfo@ \
-	@GMP_LDFLAGS@
+	@PIPLIB_LDFLAGS@ @GMP_LDFLAGS@
+libisl_la_CPPFLAGS = $(INCLUDES) @PIPLIB_CPPFLAGS@ @GMP_CPPFLAGS@
 
+isl_test_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_test_LDFLAGS = @GMP_LDFLAGS@
 isl_test_LDADD = libisl.la @GMP_LIBS@
 
+isl_polyhedron_sample_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_polyhedron_sample_LDADD = libisl.la
 isl_polyhedron_sample_SOURCES = \
 	polyhedron_sample.c
 
+isl_pip_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_pip_LDFLAGS = @GMP_LDFLAGS@
 isl_pip_LDADD = libisl.la @GMP_LIBS@
 isl_pip_SOURCES = \
 	pip.c
 
+isl_codegen_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_codegen_LDFLAGS = @GMP_LDFLAGS@
 isl_codegen_LDADD = libisl.la @GMP_LIBS@
 isl_codegen_SOURCES = \
 	codegen.c
 
+isl_bound_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_bound_LDFLAGS = @GMP_LDFLAGS@
 isl_bound_LDADD = libisl.la @GMP_LIBS@
 isl_bound_SOURCES = \
 	bound.c
 
+isl_polyhedron_minimize_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_polyhedron_minimize_LDFLAGS = @GMP_LDFLAGS@
 isl_polyhedron_minimize_LDADD = libisl.la @GMP_LIBS@
 isl_polyhedron_minimize_SOURCES = \
 	polyhedron_minimize.c
 
+isl_polytope_scan_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_polytope_scan_LDADD = libisl.la
 isl_polytope_scan_SOURCES = \
 	polytope_scan.c
 
+isl_polyhedron_detect_equalities_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_polyhedron_detect_equalities_LDADD = libisl.la
 isl_polyhedron_detect_equalities_SOURCES = \
 	polyhedron_detect_equalities.c
 
+isl_cat_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_cat_LDADD = libisl.la
 isl_cat_SOURCES = \
 	cat.c
 
+isl_closure_CPPFLAGS = $(INCLUDES) @GMP_CPPFLAGS@
 isl_closure_LDADD = libisl.la
 isl_closure_SOURCES = \
 	closure.c
@@ -188,25 +216,22 @@ pkginclude_HEADERS = \
 	include/isl/aff_type.h \
 	include/isl/arg.h \
 	include/isl/ast.h \
-	include/isl/ast_type.h \
 	include/isl/ast_build.h \
 	include/isl/band.h \
+	include/isl/blk.h \
 	include/isl/constraint.h \
 	include/isl/ctx.h \
 	include/isl/dim.h \
 	include/isl/flow.h \
 	include/isl/id.h \
-	include/isl/id_to_ast_expr.h \
-	include/isl/id_to_pw_aff.h \
 	include/isl/ilp.h \
+	include/isl/int.h \
 	include/isl/hash.h \
-	include/isl/hmap.h \
 	include/isl/list.h \
 	include/isl/local_space.h \
 	include/isl/lp.h \
 	include/isl/mat.h \
 	include/isl/map.h \
-	include/isl/map_to_basic_set.h \
 	include/isl/map_type.h \
 	include/isl/multi.h \
 	include/isl/obj.h \
@@ -216,6 +241,7 @@ pkginclude_HEADERS = \
 	include/isl/polynomial_type.h \
 	include/isl/printer.h \
 	include/isl/schedule.h \
+	include/isl/seq.h \
 	include/isl/set.h \
 	include/isl/set_type.h \
 	include/isl/space.h \
@@ -224,32 +250,14 @@ pkginclude_HEADERS = \
 	include/isl/union_map_type.h \
 	include/isl/union_set.h \
 	include/isl/union_set_type.h \
-	include/isl/val.h \
-	include/isl/val_gmp.h \
 	include/isl/vec.h \
 	include/isl/version.h \
 	include/isl/vertices.h
-deprecateddir = $(pkgincludedir)/deprecated
-deprecated_HEADERS = \
-	include/isl/deprecated/int.h \
-	include/isl/deprecated/aff_int.h \
-	include/isl/deprecated/ast_int.h \
-	include/isl/deprecated/constraint_int.h \
-	include/isl/deprecated/ilp_int.h \
-	include/isl/deprecated/map_int.h \
-	include/isl/deprecated/mat_int.h \
-	include/isl/deprecated/point_int.h \
-	include/isl/deprecated/polynomial_int.h \
-	include/isl/deprecated/set_int.h \
-	include/isl/deprecated/union_map_int.h \
-	include/isl/deprecated/val_int.h \
-	include/isl/deprecated/vec_int.h
 
 EXTRA_DIST = \
 	LICENSE \
 	isl_config_post.h \
 	basis_reduction_templ.c \
-	isl_hmap_templ.c \
 	isl_list_templ.c \
 	isl_list_templ.h \
 	isl_map_lexopt_templ.c \
@@ -268,8 +276,6 @@ EXTRA_DIST = \
 	doc/mypod2latex \
 	doc/manual.tex \
 	doc/user.pod \
-	interface/all.h \
-	interface/isl.py.top \
 	test_inputs
 
 dist-hook:
